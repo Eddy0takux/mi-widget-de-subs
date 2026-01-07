@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Widget de Meta de Subs</title>
+    <style>
+        /* Estilos básicos para que se vea bien */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #121212; /* Un fondo oscuro */
+            font-family: sans-serif;
+            color: white;
+        }
+        .widget-container {
+            text-align: center;
+            padding: 20px;
+            border: 2px solid #444;
+            border-radius: 10px;
+            background-color: #1e1e1e;
+        }
+        .subscriber-count {
+            font-size: 3em; /* Tamaño de fuente grande para el número */
+            font-weight: bold;
+            color: #00ff88; /* Un color verde/neón para el contador */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="widget-container">
+        <h2>Meta de Subs</h2>
+        <p>Actual: <span id="current-count">0</span> / Meta: <span id="goal-count">50</span></p>
+        <div class="subscriber-count" id="subscriber-count">0</div>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN ---
+        // CAMBIA ESTOS VALORES POR LOS TUYOS
+        const username = "EddyTaku"; // Tu nombre de usuario en Twitch
+        const goal = 50;             // Tu meta de suscriptores
+        // --------------------
+
+        // Elementos del HTML que vamos a modificar
+        const currentCountSpan = document.getElementById('current-count');
+        const goalCountSpan = document.getElementById('goal-count');
+        const subscriberCountDiv = document.getElementById('subscriber-count');
+
+        // Ponemos la meta en la página
+        goalCountSpan.textContent = goal;
+
+        // Función para obtener los datos de la API de Twitch
+        async function getSubscriberCount() {
+            // Usamos una API de terceros que no requiere clave para simplicidad.
+            // NOTA: Estas APIs pueden ser inestables o cambiar. Para algo profesional,
+            // se debería usar la API oficial de Twitch con un token de acceso.
+            const response = await fetch(`https://decapi.me/twitch/subscriber_count/${username}`);
+            
+            if (response.ok) {
+                const count = await response.text();
+                return parseInt(count, 10);
+            } else {
+                console.error("No se pudo obtener el conteo de subs");
+                return 0;
+            }
+        }
+
+        // Función para animar el número
+        function animateCount(start, end, duration) {
+            const range = end - start;
+            const startTime = performance.now();
+
+            function updateCount(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const currentCount = Math.floor(start + range * progress);
+                subscriberCountDiv.textContent = currentCount;
+
+                if (progress < 1) {
+                    requestAnimationFrame(updateCount);
+                }
+            }
+            
+            requestAnimationFrame(updateCount);
+        }
+
+        // Función principal que se ejecuta al cargar la página
+        async function main() {
+            const currentSubs = await getSubscriberCount();
+            currentCountSpan.textContent = currentSubs;
+
+            // Animamos el contador desde 0 hasta el número actual de subs
+            animateCount(0, currentSubs, 2000); // 2000ms = 2 segundos de animación
+        }
+
+        // Ejecutamos la función principal
+        main();
+    </script>
+
+</body>
+</html>
